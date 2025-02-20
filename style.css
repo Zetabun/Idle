@@ -33,6 +33,30 @@ body {
   text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 
+/* Upgrade Group Styling */
+.upgrade-group {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.upgrade-group .group-header {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  background: #16a085;
+  padding: 8px;
+  border-radius: 5px;
+  user-select: none;
+}
+
+.upgrade-group .group-content {
+  margin-top: 10px;
+  display: none; /* Collapsed by default */
+}
+
 /* Upgrade and Stone Selection Buttons */
 #upgrades button,
 .stone-button {
@@ -59,11 +83,6 @@ body {
 #upgrades button:disabled {
   background: #7f8c8d;
   cursor: not-allowed;
-}
-
-#stone-selection {
-  width: 100%;
-  text-align: center;
 }
 
 /* Game Area */
@@ -166,4 +185,9 @@ body {
   opacity: 0.6;
 }
 
-/* Level 3 crack:
+/* Level 3 crack: two diagonals plus a vertical crack */
+.rock.cracked-3::after {
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><path d='M30,30 L210,210 M210,30 L30,210 M120,20 L120,220' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
+  background-size: cover;
+  opacity: 1;
+}
