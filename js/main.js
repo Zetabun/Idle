@@ -24,8 +24,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Upgrade button events
   document
-    .getElementById("upgrade-pickaxe")
-    .addEventListener("click", () => upgrades.purchaseUpgrade("betterPickAxe"));
+    .getElementById("upgrade-pickaxe-tier1")
+    .addEventListener("click", () => upgrades.purchaseUpgrade("pickaxeTier1"));
+  document
+    .getElementById("upgrade-pickaxe-tier2")
+    .addEventListener("click", () => upgrades.purchaseUpgrade("pickaxeTier2"));
   document
     .getElementById("upgrade-autoclick")
     .addEventListener("click", () => upgrades.purchaseUpgrade("autoClicker"));
@@ -48,6 +51,19 @@ document.addEventListener("DOMContentLoaded", () => {
       game.setStoneType(stoneType);
       ui.updateRockType();
     });
+  });
+
+  // Expand/Collapse functionality for Stone Rock upgrade group
+  const groupHeader = document.querySelector("#upgrade-group-stone-rock .group-header");
+  const groupContent = document.querySelector("#upgrade-group-stone-rock .group-content");
+  groupHeader.addEventListener("click", () => {
+    if (groupContent.style.display === "none" || groupContent.style.display === "") {
+      groupContent.style.display = "block";
+      groupHeader.textContent = "Stone Rock ▼";
+    } else {
+      groupContent.style.display = "none";
+      groupHeader.textContent = "Stone Rock ▲";
+    }
   });
 
   // Start the game loop (which handles auto-clicking, if enabled)

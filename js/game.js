@@ -22,6 +22,32 @@ export default class Game {
     return 10;
   }
 
+  // Called when the rock is clicked (or auto-clicked)export default class Game {
+  constructor() {
+    this.gemCount = 0;
+    this.currentStone = "original"; // "original" or "new"
+    this.currentProgress = 0;
+    this.pickaxeTier = 0; // 0 = no upgrade, 1 = Tier 1, 2 = Tier 2
+    this.upgrades = {
+      autoClicker: false,
+      autoCollect: false,
+      newStone: false,
+    };
+    this.autoClickerInterval = null;
+  }
+
+  // Returns the number of clicks needed to break the current rock
+  getThreshold() {
+    if (this.currentStone === "original") {
+      if (this.pickaxeTier === 2) return 6;
+      if (this.pickaxeTier === 1) return 8;
+      return 10;
+    } else if (this.currentStone === "new") {
+      return 20;
+    }
+    return 10;
+  }
+
   // Called when the rock is clicked (or auto-clicked)
   handleRockClick() {
     this.currentProgress++;

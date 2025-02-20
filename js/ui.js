@@ -20,8 +20,11 @@ export default class UI {
   updateUpgradeButton(upgradeKey) {
     let buttonId = "";
     switch (upgradeKey) {
-      case "betterPickAxe":
-        buttonId = "upgrade-pickaxe";
+      case "pickaxeTier1":
+        buttonId = "upgrade-pickaxe-tier1";
+        break;
+      case "pickaxeTier2":
+        buttonId = "upgrade-pickaxe-tier2";
         break;
       case "autoClicker":
         buttonId = "upgrade-autoclick";
