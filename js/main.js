@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
       groupHeader.textContent = "Stone Rock ▼";
     } else {
       groupContent.style.display = "none";
-      groupHeader.textContent = "Stone Rock ▲";
+      groupHeader.textContent = "Stone Rock ►";
     }
   });
 
