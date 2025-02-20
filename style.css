@@ -1,0 +1,140 @@
+/* Global Styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  height: 100vh;
+  background: #f0f0f0;
+}
+
+/* Side Panel */
+#side-panel {
+  width: 250px;
+  background: #333;
+  color: #fff;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#side-panel h2,
+#side-panel h3 {
+  margin-top: 0;
+}
+
+#upgrades button,
+.stone-button {
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  background: #555;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#upgrades button:hover,
+.stone-button:hover {
+  background: #777;
+}
+
+/* Game Area */
+#game-area {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Rock Styling */
+.rock {
+  width: 200px;
+  height: 200px;
+  background: #888;
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.original-rock {
+  background: #888;
+}
+
+.new-rock {
+  background: #a55;
+}
+
+/* Gem Styling */
+.gem {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: red; /* red gem for original rock */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  animation: pulse 1s infinite;
+}
+
+.pink-gem {
+  background: pink;
+}
+
+/* Pulse Animation for Gem */
+@keyframes pulse {
+  0% {
+    transform: scale(1) translate(-50%, -50%);
+  }
+  50% {
+    transform: scale(1.2) translate(-50%, -50%);
+  }
+  100% {
+    transform: scale(1) translate(-50%, -50%);
+  }
+}
+
+/* Rumble Animation for Rock Clicks */
+@keyframes rumble {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 2px); }
+  50% { transform: translate(2px, -2px); }
+  75% { transform: translate(-2px, -2px); }
+  100% { transform: translate(0, 0); }
+}
+
+.rumble {
+  animation: rumble 0.2s;
+}
+
+/* Crack Overlay for Rock */
+/* (Using a placeholder image; you can swap in your own) */
+.rock::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('placeholder_crack.png') no-repeat center center;
+  background-size: cover;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Increasing crack opacity based on progress */
+.rock.cracked-1::after {
+  opacity: 0.3;
+}
+
+.rock.cracked-2::after {
+  opacity: 0.6;
+}
+
+.rock.cracked-3::after {
+  opacity: 1;
+}
