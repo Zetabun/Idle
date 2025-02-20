@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300;400;500&display=swap');
+
 /* Global Styles */
 body {
   margin: 0;
@@ -5,46 +7,53 @@ body {
   font-family: 'Roboto', sans-serif;
   display: flex;
   height: 100vh;
-  background: linear-gradient(135deg, #2c3e50, #34495e);
+  overflow: hidden;
+  background: radial-gradient(circle at center, #1b2735, #090a0f);
   color: #ecf0f1;
 }
 
 /* Side Panel */
 #side-panel {
-  width: 300px;
-  background: rgba(44, 62, 80, 0.85);
+  width: 320px;
+  background: rgba(0, 0, 0, 0.8);
   padding: 20px;
   box-sizing: border-box;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+  border-right: 2px solid #34495e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
 #side-panel h2,
 #side-panel h3 {
-  margin: 0 0 15px 0;
-  font-weight: 300;
-  border-bottom: 1px solid #7f8c8d;
-  padding-bottom: 10px;
+  font-family: 'Press Start 2P', cursive;
+  margin: 0;
+  padding: 10px 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
 }
 
 /* Upgrade and Stone Selection Buttons */
 #upgrades button,
 .stone-button {
   width: 100%;
-  margin: 10px 0;
+  margin: 5px 0;
   padding: 12px;
   background: linear-gradient(45deg, #16a085, #1abc9c);
   border: none;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
   border-radius: 5px;
-  transition: background 0.3s, transform 0.2s;
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 10px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
 }
 
 #upgrades button:hover,
 .stone-button:hover {
+  transform: scale(1.05);
   background: linear-gradient(45deg, #1abc9c, #16a085);
-  transform: scale(1.03);
 }
 
 #upgrades button:disabled {
@@ -52,26 +61,36 @@ body {
   cursor: not-allowed;
 }
 
+#stone-selection {
+  width: 100%;
+  text-align: center;
+}
+
 /* Game Area */
 #game-area {
   flex: 1;
-  position: relative;
+  background: radial-gradient(circle at center, #2c3e50, #000);
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #2c3e50;
+  position: relative;
 }
 
 /* Rock Styling */
 .rock {
-  width: 220px;
-  height: 220px;
-  background: #95a5a6;
+  width: 240px;
+  height: 240px;
+  background: #7f8c8d;
   border-radius: 15px;
   position: relative;
   cursor: pointer;
   transition: transform 0.1s, box-shadow 0.3s;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+}
+
+.rock:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.9);
 }
 
 .original-rock {
@@ -84,8 +103,8 @@ body {
 
 /* Gem Styling */
 .gem {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   background: #e74c3c;
   position: absolute;
@@ -94,33 +113,27 @@ body {
   transform: translate(-50%, -50%);
   cursor: pointer;
   animation: pulse 1s infinite;
-  box-shadow: 0 0 15px rgba(231, 76, 60, 0.7);
+  box-shadow: 0 0 15px rgba(231, 76, 60, 0.8);
 }
 
 .pink-gem {
   background: #fd79a8;
-  box-shadow: 0 0 15px rgba(253, 121, 168, 0.7);
+  box-shadow: 0 0 15px rgba(253, 121, 168, 0.8);
 }
 
 /* Pulse Animation for Gem */
 @keyframes pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-  }
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 /* Rumble Animation for Rock Clicks */
 @keyframes rumble {
   0% { transform: translate(0, 0); }
-  25% { transform: translate(-3px, 3px); }
-  50% { transform: translate(3px, -3px); }
-  75% { transform: translate(-3px, -3px); }
+  25% { transform: translate(-4px, 4px); }
+  50% { transform: translate(4px, -4px); }
+  75% { transform: translate(-4px, -4px); }
   100% { transform: translate(0, 0); }
 }
 
@@ -141,21 +154,16 @@ body {
 
 /* Level 1 crack: one simple diagonal line */
 .rock.cracked-1::after {
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><path d='M30,30 L190,190' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><path d='M30,30 L210,210' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
   background-size: cover;
   opacity: 0.3;
 }
 
 /* Level 2 crack: two diagonal lines crossing */
 .rock.cracked-2::after {
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><path d='M30,30 L190,190 M190,30 L30,190' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><path d='M30,30 L210,210 M210,30 L30,210' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
   background-size: cover;
   opacity: 0.6;
 }
 
-/* Level 3 crack: two diagonals plus a vertical crack */
-.rock.cracked-3::after {
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><path d='M30,30 L190,190 M190,30 L30,190 M110,20 L110,200' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
-  background-size: cover;
-  opacity: 1;
-}
+/* Level 3 crack:
