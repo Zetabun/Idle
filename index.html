@@ -11,18 +11,26 @@
   <div id="side-panel">
     <h2>Gems: <span id="gem-count">0</span></h2>
     <div id="upgrades">
-      <button id="upgrade-pickaxe" data-upgrade="betterPickAxe">
-        Better Pick Axe (Cost: 10 red gems)
-      </button>
-      <button id="upgrade-autoclick" data-upgrade="autoClicker">
-        Auto Clicker (Cost: 50 red gems)
-      </button>
-      <button id="upgrade-autocollect" data-upgrade="autoCollect">
-        Auto Collect (Cost: 100 red gems)
-      </button>
-      <button id="upgrade-newstone" data-upgrade="newStone">
-        Unlock New Stone (Cost: 500 red gems)
-      </button>
+      <div id="upgrade-group-stone-rock" class="upgrade-group">
+        <div class="group-header">Stone Rock ▼</div>
+        <div class="group-content">
+          <button id="upgrade-pickaxe-tier1" data-upgrade="pickaxeTier1">
+            Upgrade Pickaxe Tier 1 (Cost: 10 red gems)
+          </button>
+          <button id="upgrade-pickaxe-tier2" data-upgrade="pickaxeTier2" style="display: none;">
+            Upgrade Pickaxe Tier 2 (Cost: 20 red gems)
+          </button>
+          <button id="upgrade-autoclick" data-upgrade="autoClicker">
+            Auto Clicker (Cost: 50 red gems)
+          </button>
+          <button id="upgrade-autocollect" data-upgrade="autoCollect">
+            Auto Collect (Cost: 100 red gems)
+          </button>
+          <button id="upgrade-newstone" data-upgrade="newStone">
+            Unlock New Stone (Cost: 500 red gems)
+          </button>
+        </div>
+      </div>
     </div>
     <!-- Stone Selection UI (hidden until unlocked) -->
     <div id="stone-selection" style="display: none;">
