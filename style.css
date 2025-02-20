@@ -2,41 +2,54 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   display: flex;
   height: 100vh;
-  background: #f0f0f0;
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: #ecf0f1;
 }
 
 /* Side Panel */
 #side-panel {
-  width: 250px;
-  background: #333;
-  color: #fff;
+  width: 300px;
+  background: rgba(44, 62, 80, 0.85);
   padding: 20px;
   box-sizing: border-box;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
 }
 
 #side-panel h2,
 #side-panel h3 {
-  margin-top: 0;
+  margin: 0 0 15px 0;
+  font-weight: 300;
+  border-bottom: 1px solid #7f8c8d;
+  padding-bottom: 10px;
 }
 
+/* Upgrade and Stone Selection Buttons */
 #upgrades button,
 .stone-button {
   width: 100%;
   margin: 10px 0;
-  padding: 10px;
-  background: #555;
+  padding: 12px;
+  background: linear-gradient(45deg, #16a085, #1abc9c);
   border: none;
   color: #fff;
+  font-size: 16px;
   cursor: pointer;
-  transition: background 0.3s;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.2s;
 }
 
 #upgrades button:hover,
 .stone-button:hover {
-  background: #777;
+  background: linear-gradient(45deg, #1abc9c, #16a085);
+  transform: scale(1.03);
+}
+
+#upgrades button:disabled {
+  background: #7f8c8d;
+  cursor: not-allowed;
 }
 
 /* Game Area */
@@ -46,64 +59,68 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  background: #2c3e50;
 }
 
 /* Rock Styling */
 .rock {
-  width: 200px;
-  height: 200px;
-  background: #888;
-  border-radius: 10px;
+  width: 220px;
+  height: 220px;
+  background: #95a5a6;
+  border-radius: 15px;
   position: relative;
   cursor: pointer;
-  transition: transform 0.1s;
+  transition: transform 0.1s, box-shadow 0.3s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .original-rock {
-  background: #888;
+  background: #95a5a6;
 }
 
 .new-rock {
-  background: #a55;
+  background: #c0392b;
 }
 
 /* Gem Styling */
 .gem {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  background: red; /* red gem for original rock */
+  background: #e74c3c;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   cursor: pointer;
   animation: pulse 1s infinite;
+  box-shadow: 0 0 15px rgba(231, 76, 60, 0.7);
 }
 
 .pink-gem {
-  background: pink;
+  background: #fd79a8;
+  box-shadow: 0 0 15px rgba(253, 121, 168, 0.7);
 }
 
 /* Pulse Animation for Gem */
 @keyframes pulse {
   0% {
-    transform: scale(1) translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1);
   }
   50% {
-    transform: scale(1.2) translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1.2);
   }
   100% {
-    transform: scale(1) translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
 /* Rumble Animation for Rock Clicks */
 @keyframes rumble {
   0% { transform: translate(0, 0); }
-  25% { transform: translate(-2px, 2px); }
-  50% { transform: translate(2px, -2px); }
-  75% { transform: translate(-2px, -2px); }
+  25% { transform: translate(-3px, 3px); }
+  50% { transform: translate(3px, -3px); }
+  75% { transform: translate(-3px, -3px); }
   100% { transform: translate(0, 0); }
 }
 
@@ -124,21 +141,21 @@ body {
 
 /* Level 1 crack: one simple diagonal line */
 .rock.cracked-1::after {
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><path d='M20,20 L180,180' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>");
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><path d='M30,30 L190,190' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
   background-size: cover;
   opacity: 0.3;
 }
 
 /* Level 2 crack: two diagonal lines crossing */
 .rock.cracked-2::after {
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><path d='M20,20 L180,180 M180,20 L20,180' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>");
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><path d='M30,30 L190,190 M190,30 L30,190' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
   background-size: cover;
   opacity: 0.6;
 }
 
 /* Level 3 crack: two diagonals plus a vertical crack */
 .rock.cracked-3::after {
-  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><path d='M20,20 L180,180 M180,20 L20,180 M100,10 L100,190' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>");
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><path d='M30,30 L190,190 M190,30 L30,190 M110,20 L110,200' stroke='black' stroke-width='3' stroke-linecap='round'/></svg>");
   background-size: cover;
   opacity: 1;
 }
