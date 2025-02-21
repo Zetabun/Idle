@@ -1,22 +1,23 @@
 export default class UI {
   constructor(game) {
     this.game = game;
-    this.gemCountElement = document.getElementById("gem-count");
+    this.redGemElement = document.getElementById("red-gem-count");
+    this.yellowGemElement = document.getElementById("yellow-gem-count");
     this.rockElement = document.getElementById("rock");
 
-    // Update UI on auto-click events
     document.addEventListener("autoClick", () => {
       this.updateGemDisplay();
       this.updateRockVisual();
     });
   }
 
-  // Updates the gem count display
+  // Updates both gem displays
   updateGemDisplay() {
-    this.gemCountElement.textContent = this.game.gemCount;
+    this.redGemElement.textContent = this.game.redGemCount;
+    this.yellowGemElement.textContent = this.game.yellowGemCount;
   }
 
-  // Updates the text and state of an upgrade button when purchased
+  // Updates upgrade button state when purchased
   updateUpgradeButton(upgradeKey) {
     let buttonId = "";
     switch (upgradeKey) {
@@ -32,8 +33,17 @@ export default class UI {
       case "autoCollect":
         buttonId = "upgrade-autocollect";
         break;
-      case "newStone":
-        buttonId = "upgrade-newstone";
+      case "beachPickaxeTier1":
+        buttonId = "upgrade-beach-pickaxe-tier1";
+        break;
+      case "beachPickaxeTier2":
+        buttonId = "upgrade-beach-pickaxe-tier2";
+        break;
+      case "beachAutoClicker":
+        buttonId = "upgrade-beach-autoclick";
+        break;
+      case "beachAutoCollect":
+        buttonId = "upgrade-beach-autocollect";
         break;
     }
     const button = document.getElementById(buttonId);
@@ -43,12 +53,10 @@ export default class UI {
     }
   }
 
-  // Updates the rock's visual state (cracks and rumble effect)
+  // Updates rock visuals based on current progress (cracks and rumble)
   updateRockVisual() {
     const progress = this.game.currentProgress;
     const threshold = this.game.getThreshold();
-
-    // Remove existing crack classes
     this.rockElement.classList.remove("cracked-1", "cracked-2", "cracked-3");
     let crackLevel = 0;
     if (progress > threshold * 0.66) {
@@ -61,15 +69,13 @@ export default class UI {
     if (crackLevel > 0) {
       this.rockElement.classList.add(`cracked-${crackLevel}`);
     }
-
-    // Add a brief rumble animation
     this.rockElement.classList.add("rumble");
     setTimeout(() => {
       this.rockElement.classList.remove("rumble");
     }, 200);
   }
 
-  // Resets rock visuals when the stone type changes
+  // Clears rock crack visuals when stone type changes
   updateRockType() {
     this.rockElement.classList.remove("cracked-1", "cracked-2", "cracked-3");
   }
