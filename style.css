@@ -120,6 +120,16 @@ body {
   background: #c0392b;
 }
 
+/* Rock Break Animation */
+.rock.broken {
+  animation: breakAnimation 0.5s forwards;
+}
+
+@keyframes breakAnimation {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.5); opacity: 0.5; }
+}
+
 /* Gem Styling */
 .gem {
   width: 70px;
