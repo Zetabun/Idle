@@ -2,13 +2,13 @@ export default class Upgrades {
   constructor(game, ui) {
     this.game = game;
     this.ui = ui;
-    // Define the gem cost for each upgrade
+    // For testing: all upgrades cost 1 gem
     this.costs = {
-      pickaxeTier1: 10,
-      pickaxeTier2: 20,
-      autoClicker: 50,
-      autoCollect: 100,
-      newStone: 500,
+      pickaxeTier1: 1,
+      pickaxeTier2: 1,
+      autoClicker: 1,
+      autoCollect: 1,
+      newStone: 1,
     };
   }
 

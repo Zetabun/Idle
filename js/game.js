@@ -10,6 +10,7 @@ export default class Game {
       newStone: false,
     };
     this.autoClickerInterval = null;
+    this.waitingForGem = false;
   }
 
   // Returns the number of clicks needed to break the current rock
@@ -26,14 +27,20 @@ export default class Game {
 
   // Called when the rock is clicked (or auto-clicked)
   handleRockClick() {
+    // If we're waiting for gem collection, do not register clicks
+    if (this.waitingForGem) return;
     this.currentProgress++;
     if (this.currentProgress >= this.getThreshold()) {
       this.breakRock();
     }
   }
 
-  // Breaks the rock, attempts to drop a gem, and resets progress
+  // Breaks the rock, animates its break, and then resets after 1 second
   breakRock() {
+    const rockElement = document.getElementById("rock");
+    // Add a 'broken' class to trigger break animation
+    rockElement.classList.add("broken");
+
     let gemDrop = false;
     if (this.currentStone === "original") {
       gemDrop = Math.random() < 0.5; // 50% chance for red gem
@@ -42,16 +49,25 @@ export default class Game {
     }
 
     if (gemDrop) {
-      // Auto collect gem if upgrade is active; otherwise, display gem
       if (this.upgrades.autoCollect) {
         this.gemCount++;
+        // Wait 1 second, then reset rock
+        setTimeout(() => {
+          rockElement.classList.remove("broken");
+          this.currentProgress = 0;
+        }, 1000);
       } else {
+        // Spawn the gem and mark that we're waiting for gem collection
         this.spawnGem();
+        this.waitingForGem = true;
       }
+    } else {
+      // No gem drop: after 1 second, remove broken animation and reset progress
+      setTimeout(() => {
+        rockElement.classList.remove("broken");
+        this.currentProgress = 0;
+      }, 1000);
     }
-
-    // Reset progress after the rock breaks
-    this.currentProgress = 0;
   }
 
   // Displays the gem on the screen for manual collection
@@ -72,6 +88,12 @@ export default class Game {
     const gemElement = document.getElementById("gem");
     gemElement.style.display = "none";
     this.gemCount++;
+    if (this.waitingForGem) {
+      const rockElement = document.getElementById("rock");
+      rockElement.classList.remove("broken");
+      this.currentProgress = 0;
+      this.waitingForGem = false;
+    }
   }
 
   // Sets the current stone type and resets progress/visuals
@@ -91,9 +113,8 @@ export default class Game {
   // Starts the game loop which checks for auto-clicker activation every second
   startGameLoop() {
     setInterval(() => {
-      if (this.upgrades.autoClicker) {
+      if (this.upgrades.autoClicker && !this.waitingForGem) {
         this.handleRockClick();
-        // Dispatch an event so that UI elements (like crack visuals) can update
         const event = new CustomEvent("autoClick");
         document.dispatchEvent(event);
       }
