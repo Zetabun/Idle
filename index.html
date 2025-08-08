@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UK COVID‑19 Nations Heatmap (Self‑contained, v2)</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    #map { height: 100vh; }
+    .info {
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      border-radius: 6px;
+      line-height: 1.2;
+    }
+    .legend {
+      line-height: 18px;
+      color: #555;
+      background: rgba(255,255,255,0.95);
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    .legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.7; }
+    .attribution { position: absolute; bottom: 8px; left: 8px; background: rgba(255,255,255,0.9); padding: 6px 8px; border-radius: 6px; font-size: 12px;}
+    .topbar {
+      position: absolute; top: 10px; left: 10px; z-index: 1000;
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+      background: rgba(255,255,255,0.98); padding: 8px 10px; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .topbar select, .topbar button { font-size: 14px; padding: 6px 8px; }
+    .status { font-size: 12px; color: #555; }
+    .toast {
+      position: absolute; right: 10px; top: 10px; z-index: 1100;
+      background: #fee; color: #900; padding: 10px 12px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,.2);
+      display: none; max-width: 360px;
+    }
+    .spinner {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      border: 6px solid #eee; border-top: 6px solid #888; border-radius: 50%; width: 48px; height: 48px;
+      animation: spin 0.8s linear infinite; z-index: 900; display:none;
+    }
+    .badge {
+      position: absolute; right: 10px; bottom: 10px; z-index: 1100;
+      background: rgba(0,0,0,0.7); color: #fff; padding: 6px 10px; border-radius: 999px; font-size: 12px;
+    }
+    @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <strong>Metric:</strong>
+    <select id="metric">
+      <option value="newCasesByPublishDateRollingRate" selected>7‑day cases/100k (rolling)</option>
+      <option value="newCasesByPublishDate">New cases (daily)</option>
+    </select>
+    <button id="refresh">Refresh</button>
+    <span id="status" class="status"></span>
+  </div>
+  <div id="map"></div>
+  <div class="spinner" id="spinner"></div>
+  <div class="toast" id="toast"></div>
+  <div class="attribution">
+    Data: UKHSA COVID‑19 API. Map © OpenStreetMap contributors, © Leaflet. Boundaries are simplified for speed (illustrative).
+  </div>
+  <div class="badge">Nations map v2 • 2025‑08‑08</div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    console.log('Nations map v2 loaded');
+
+    // ===== No external GeoJSON fetches in this file =====
+    // Simplified polygons for the four UK nations (illustrative shapes)
+    const nationsGeoJSON = {
+      "type": "FeatureCollection",
+      "features": [
+        { "type":"Feature", "properties": { "lad_name":"England", "lad_code":"E92000001" },
+          "geometry": { "type":"Polygon", "coordinates": [[
+            [-6.0, 55.8], [0.2, 55.8], [2.0, 52.0], [1.8, 50.0], [-5.5, 50.0], [-6.0, 55.8]
+          ]]}
+        },
+        { "type":"Feature", "properties": { "lad_name":"Wales", "lad_code":"W92000004" },
+          "geometry": { "type":"Polygon", "coordinates": [[
+            [-5.6, 53.6], [-2.6, 53.6], [-2.6, 51.2], [-5.6, 51.2], [-5.6, 53.6]
+          ]]}
+        },
+        { "type":"Feature", "properties": { "lad_name":"Scotland", "lad_code":"S92000003" },
+          "geometry": { "type":"Polygon", "coordinates": [[
+            [-8.0, 58.7], [-0.5, 58.7], [-0.5, 54.6], [-6.5, 54.6], [-8.0, 58.7]
+          ]]}
+        },
+        { "type":"Feature", "properties": { "lad_name":"Northern Ireland", "lad_code":"N92000002" },
+          "geometry": { "type":"Polygon", "coordinates": [[
+            [-8.2, 55.3], [-5.2, 55.3], [-5.2, 54.0], [-8.2, 54.0], [-8.2, 55.3]
+          ]]}
+        }
+      ]
+    };
+
+    // Helpers
+    const spinner = document.getElementById('spinner');
+    const toast = document.getElementById('toast');
+    const showSpinner = (b) => spinner.style.display = b ? 'block' : 'none';
+    const showToast = (msg) => { toast.textContent = msg; toast.style.display = 'block'; setTimeout(()=> toast.style.display='none', 8000); };
+
+    // Map init
+    let map;
+    try {
+      map = L.map('map', { zoomSnap: 0.5 }).setView([54.5, -3.2], 5.4);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 10,
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+    } catch(e) {
+      showToast('Leaflet failed to load: ' + e.message);
+    }
+
+    // Global refs
+    let geoLayer;
+    let latestDate = null;
+    let metricKey = document.getElementById('metric').value;
+
+    const statusEl = document.getElementById('status');
+    const refreshBtn = document.getElementById('refresh');
+    const metricSelect = document.getElementById('metric');
+
+    metricSelect.addEventListener('change', () => { metricKey = metricSelect.value; drawChoropleth(); });
+    refreshBtn.addEventListener('click', () => { fetchAndRender().catch(err => console.error(err)); });
+
+    // Color scales
+    function getColorRate(d){
+      return d == null ? '#f0f0f0' :
+             d > 300 ? '#800026' :
+             d > 200 ? '#BD0026' :
+             d > 150 ? '#E31A1C' :
+             d > 100 ? '#FC4E2A' :
+             d > 60  ? '#FD8D3C' :
+             d > 30  ? '#FEB24C' :
+             d > 10  ? '#FED976' :
+                       '#FFEDA0';
+    }
+    function getColorDaily(d){
+      return d == null ? '#f0f0f0' :
+             d > 2000 ? '#800026' :
+             d > 1000 ? '#BD0026' :
+             d > 700  ? '#E31A1C' :
+             d > 400  ? '#FC4E2A' :
+             d > 200  ? '#FD8D3C' :
+             d > 100  ? '#FEB24C' :
+             d > 50   ? '#FED976' :
+                        '#FFEDA0';
+    }
+    function getColor(d){
+      return (metricKey === 'newCasesByPublishDate') ? getColorDaily(d) : getColorRate(d);
+    }
+
+    function style(feature) {
+      const props = feature.properties || {};
+      const d = (props.__covid && props.__covid[metricKey] != null) ? props.__covid[metricKey] : null;
+      return { fillColor: getColor(d), weight: 0.8, opacity: 1, color: '#555', dashArray: '2', fillOpacity: 0.8 };
+    }
+
+    function onEachFeature(feature, layer){
+      const p = feature.properties || {};
+      const c = p.__covid || {};
+      const rate = c.newCasesByPublishDateRollingRate;
+      const newCases = c.newCasesByPublishDate;
+      const date = c.date || latestDate || '—';
+      const name = p.lad_name || p.name || 'Area';
+      const code = p.lad_code || p.code || '';
+      const html = `
+        <div class="info">
+          <strong>${name}</strong><br/>
+          <div>${date ? 'Date: ' + date : ''}</div>
+          <div>7‑day rate/100k: <strong>${(rate ?? 'N/A')}</strong></div>
+          <div>New cases (daily): <strong>${(newCases ?? 'N/A')}</strong></div>
+          <div style="margin-top:6px;font-size:11px;color:#666;">code: ${code}</div>
+        </div>`;
+      layer.bindPopup(html);
+      layer.on({
+        mouseover: (e) => { const l = e.target; l.setStyle({ weight: 2, color: '#111', fillOpacity: 0.85 }); l.bringToFront(); },
+        mouseout: (e) => { geoLayer.resetStyle(e.target); }
+      });
+    }
+
+    const legend = L.control({position: 'bottomright'});
+    function updateLegend(){
+      const div = L.DomUtil.create('div', 'legend');
+      if(metricKey === 'newCasesByPublishDate'){
+        const grades = [0,50,100,200,400,700,1000,2000];
+        div.innerHTML += '<strong>New cases (daily)</strong><br>';
+        for (let i = 0; i < grades.length; i++) {
+          const from = grades[i];
+          const to = grades[i + 1];
+          const color = getColorDaily(from + 0.1);
+          div.innerHTML += '<i style="background:' + color + '"></i> ' + from + (to ? '&ndash;' + to : '+') + '<br>';
+        }
+      } else {
+        const grades = [0,10,30,60,100,150,200,300];
+        div.innerHTML += '<strong>7‑day cases / 100k</strong><br>';
+        for (let i = 0; i < grades.length; i++) {
+          const from = grades[i];
+          const to = grades[i + 1];
+          const color = getColorRate(from + 0.1);
+          div.innerHTML += '<i style="background:' + color + '"></i> ' + from + (to ? '&ndash;' + to : '+') + '<br>';
+        }
+      }
+      return div;
+    }
+    legend.onAdd = function(){ return updateLegend(); };
+    legend.addTo(map);
+
+    function refreshLegend(){
+      legend.remove();
+      legend.onAdd = function(){ return updateLegend(); };
+      legend.addTo(map);
+    }
+
+    async function fetchNationsData(metricLatestBy='newCasesByPublishDateRollingRate') {
+      const structure = {
+        areaCode: "areaCode",
+        areaName: "areaName",
+        date: "date",
+        newCasesByPublishDateRollingRate: "newCasesByPublishDateRollingRate",
+        newCasesByPublishDate: "newCasesByPublishDate"
+      };
+      const url = new URL('https://api.coronavirus.data.gov.uk/v1/data');
+      url.searchParams.set('filters', 'areaType=nation');
+      url.searchParams.set('latest_by', metricLatestBy);
+      url.searchParams.set('structure', JSON.stringify(structure));
+      const resp = await fetch(url.toString(), { headers: { 'Accept': 'application/json' }});
+      if(!resp.ok) throw new Error('UKHSA API error: ' + resp.status + ' ' + (await resp.text()));
+      const json = await resp.json();
+      const data = (json && json.data) ? json.data : [];
+      if(data.length){ latestDate = data[0].date; }
+      return data;
+    }
+
+    function indexByCode(rows){
+      const idx = new Map();
+      rows.forEach(r => { if(r.areaCode){ idx.set(r.areaCode, r); } });
+      return idx;
+    }
+
+    function attachToFeatures(geojson, idx){
+      for(const f of geojson.features){
+        const p = f.properties || (f.properties = {});
+        const code = p.lad_code || p.code;
+        const name = p.lad_name || p.name;
+        if(code && !p.lad_code) p.lad_code = code;
+        if(name && !p.lad_name) p.lad_name = name;
+        const match = code ? idx.get(code) : null;
+        p.__covid = match ? match : {};
+      }
+      return geojson;
+    }
+
+    let cachedIdx = null;
+
+    async function fetchAndRender(){
+      try {
+        showSpinner(true);
+        statusEl.textContent = 'Loading latest COVID data…';
+        const rows = await fetchNationsData('newCasesByPublishDateRollingRate');
+        cachedIdx = indexByCode(rows);
+        statusEl.textContent = `Latest date: ${latestDate || ''} • Nations: ${rows.length}`;
+        drawChoropleth();
+      } catch(err){
+        console.error(err);
+        showToast(err.message || String(err));
+        statusEl.textContent = 'Error: ' + (err.message || String(err));
+      } finally {
+        showSpinner(false);
+      }
+    }
+
+    function drawChoropleth(){
+      if(geoLayer){ geoLayer.remove(); }
+      const enriched = attachToFeatures(JSON.parse(JSON.stringify(nationsGeoJSON)), cachedIdx || new Map());
+      geoLayer = L.geoJSON(enriched, { style, onEachFeature }).addTo(map);
+      try { map.fitBounds(geoLayer.getBounds(), { padding: [10,10] }); } catch(e) {}
+      refreshLegend();
+    }
+
+    // Kick off
+    fetchAndRender().catch(err => {
+      console.error(err);
+      showToast('Startup error: ' + err.message);
+      statusEl.textContent = 'Error: ' + err.message;
+    });
+  </script>
+</body>
+</html>
