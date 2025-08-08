@@ -1,0 +1,26 @@
+*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#0f1220;color:#eef1ff}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#171a2f;border-bottom:1px solid #2b2f53;position:sticky;top:0;z-index:10}
+.brand{font-weight:800;letter-spacing:.3px}
+.nav button,.nav a{margin-left:8px}
+.container{padding:16px;display:grid;gap:16px}
+.panel{background:#151835;border:1px solid #2b2f53;border-radius:10px;padding:12px 14px;box-shadow:0 0 0 1px #0a0c1b inset}
+.panel h2{margin:0 0 8px 0;font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:6px 12px;margin-bottom:8px}
+.controls button{margin:4px 6px 0 0}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.list{min-height:140px;max-height:250px;overflow:auto;background:#0f122b;border:1px solid #22264d;border-radius:8px;padding:8px}
+.card{border:1px solid #2b2f53;border-radius:8px;padding:8px;margin-bottom:8px;background:#15193d}
+.card.selected{outline:2px solid #70a1ff}
+.button-row{margin-top:6px}
+button{background:#2d335f;color:#fff;border:1px solid #3e4583;border-radius:8px;padding:6px 8px;cursor:pointer}
+button:hover{filter:brightness(1.08)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.prestige{background:#5b2c6f;border-color:#8e44ad}
+.map{display:grid;grid-template-columns:700px 1fr;gap:12px;align-items:start}
+canvas{background:#0b0e20;border:1px solid #22264d;border-radius:8px}
+.routes select{margin-left:6px}
+.log{height:160px;overflow:auto;background:#0f122b;border:1px solid #22264d;border-radius:8px;padding:8px;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.footer{padding:12px 16px;text-align:center;color:#b7c1ff3a}
+.small{opacity:.8;font-size:.9em}
+.badge{display:inline-block;background:#2d335f;border:1px solid #3e4583;padding:2px 6px;border-radius:6px;margin-left:6px;font-size:.8em}
+a.wiki{background:#263775;border:1px solid #3d55a8;padding:6px 10px;border-radius:8px;text-decoration:none;color:#fff}
