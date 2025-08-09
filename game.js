@@ -1,15 +1,5 @@
 (function(){
 
-// === Diagnostic helpers ===
-function __diagBanner(msg){
-  try{
-    const b = document.createElement('div');
-    b.textContent = msg;
-    b.style.cssText='position:fixed;left:8px;top:8px;z-index:999999;background:#111;color:#fff;padding:8px 10px;border-radius:8px;font:13px/1.2 system-ui';
-    document.body.appendChild(b);
-  }catch(e){ console.error(e); }
-}
-console.log('[parcel-pilot] module loaded');
 
 'use strict';
 
@@ -702,7 +692,30 @@ function save(now=false){
   if(now){ S.lastSaved = Date.now(); }
 }
 function load(){
-  try{
+  
+  // Defensive loader to handle corrupted saves
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch(e) {
+      S = defaultState();
+      save();
+      return false;
+    }
+    if (!data || typeof data !== 'object') {
+      S = defaultState();
+      save();
+      return false;
+    }
+  } catch(e) {
+    S = defaultState();
+    save();
+    return false;
+  }
+try{
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return false;
     const obj = JSON.parse(raw);
@@ -748,12 +761,9 @@ function maybeShowPrestige(){
   prestigeCard.classList.toggle("hidden", !open);
 }
 function bindUI(){
-
-  // Diagnostic: check critical DOM nodes exist
   const _ids = ['saveBtn','resetBtn','garageBtn','toggleTickerBtn','refreshNowBtn','acceptBtn','prestigeBtn','importBtn'];
   for (const id of _ids){
     const el = document.getElementById(id);
-    if (!el){ console.error('[parcel-pilot] missing #' + id); try{ __diagBanner('Missing #' + id); }catch(_e){} }
   }
 
   $("#saveBtn").addEventListener("click", () => { save(true); log("Game saved."); });
@@ -925,16 +935,12 @@ function autoDispatch(){
 
 /* ===== Bootstrap ===== */
 function initAfterLoad(){
-
-  // Diagnostic: verify canvas and context
   try{
     const cnv = document.getElementById('map');
-    if (!cnv){ console.error('[parcel-pilot] missing #map canvas'); __diagBanner('Missing #map'); }
     else {
       const ctx = cnv.getContext('2d');
-      if (!ctx){ console.error('[parcel-pilot] 2D context failed'); __diagBanner('Canvas 2D failed'); }
     }
-  }catch(e){ console.error(e); __diagBanner('Canvas init error: ' + (e && e.message)); }
+  }catch(e){ console.error(e);  }
 
   // Wire DOM
   map = $("#map"); ctx = map.getContext("2d");
