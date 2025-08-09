@@ -1,33 +1,16 @@
-import { WORLD, ECON, BREAKS, SPEED, WEATHER } from './constants.js';
-import { CITIES, CITY_BY_ID, ROADS, pairKey, roadsFor } from './mapData.js';
-import { clamp, rnd, dist, fmtMoney, fmt1, formatMMSS } from './utils.js';
-// === ESM compatibility layer (auto-generated) ===
-if (typeof window !== 'undefined') {
-  // Expose inline-handler functions to window for existing HTML attributes
-  const _expose = (name) => {
-    try {
-      if (!(name in window) && typeof eval(name) === 'function') {
-        window[name] = eval(name);
-      }
-    } catch(e) { /* ignore */ }
-  };
-  const _names = [];
-  _names.forEach(_expose);
-
-  // Warn if opened via file:// (modules won't import when not served)
-  try {
-    if (location.protocol === 'file:') {
-      console.warn('This page is opened via file:// — ES module imports may fail. Use a local HTTP server.');
-      const warn = document.createElement('div');
-      warn.textContent = 'Open via a local server (ES modules) — e.g., `npx serve` or `python -m http.server`.';
-      warn.style.cssText = 'position:fixed;left:10px;bottom:10px;background:#222;color:#fff;padding:8px 10px;border-radius:6px;font:14px/1.2 system-ui;z-index:99999;';
-      document.addEventListener('DOMContentLoaded', ()=>document.body.appendChild(warn));
-    }
-  } catch(e) {}
-}
-
-
 (function(){
+
+// === Diagnostic helpers ===
+function __diagBanner(msg){
+  try{
+    const b = document.createElement('div');
+    b.textContent = msg;
+    b.style.cssText='position:fixed;left:8px;top:8px;z-index:999999;background:#111;color:#fff;padding:8px 10px;border-radius:8px;font:13px/1.2 system-ui';
+    document.body.appendChild(b);
+  }catch(e){ console.error(e); }
+}
+console.log('[parcel-pilot] module loaded');
+
 'use strict';
 
 /* ===== Version & Globals ===== */
@@ -37,27 +20,103 @@ const GAME_VERSION = "1.6";
 const $ = s => document.querySelector(s);
 
 /* ===== Constants / Tunables ===== */
-
-
-
-
+const WORLD = { W: 960, H: 500 };
+const ECON = {
+  fuelPrice: 2, fuelCap: 100, fuelPerDist: 0.05, fuelReserve: 12,
+  refuelTimeMin: 3, refuelTimeMax: 6,
+  trafficChancePerSec: 1/90, trafficSpeedMult: 0.6, trafficDurMin: 6, trafficDurMax: 15,
+  incidentChancePerSec: 1/140, incidentDurMin: 4, incidentDurMax: 10,
+  incidentCostMin: 0, incidentCostMax: 120, // can be 0 (delay-only)
+  serviceCostBase: 150,
+  refreshNowCost: 50
+};
+const BREAKS = {
+  minutesPerSecond: 2,
+  dinnerEveryMin: 360,
+  dinnerDurSecMin: 8, dinnerDurSecMax: 14,
+  toiletEveryMinMin: 90, toiletEveryMinMax: 180,
+  toiletDurSecMin: 3, toiletDurSecMax: 7
+};
+const SPEED = { base: 1.2, tuneStep: 0.2 };
 
 /* ===== Map / Cities ===== */
-
-
+const CITIES = [
+  { id:"BIR", name:"Birmingham (HQ)", x:480, y:260, cost:0, tutorial:true },
+  { id:"OXF", name:"Oxford", x:430, y:310, cost:0, tutorial:true },
+  { id:"BRI", name:"Bristol", x:360, y:360, cost:0, tutorial:true },
+  { id:"LDN", name:"London", x:560, y:320, cost:0, tutorial:true },
+  { id:"LEI", name:"Leicester", x:520, y:240, cost:800 },
+  { id:"CAR", name:"Cardiff", x:310, y:380, cost:900 },
+  { id:"LIV", name:"Liverpool", x:430, y:180, cost:1200 },
+  { id:"MAN", name:"Manchester", x:500, y:160, cost:1600 },
+  { id:"SHE", name:"Sheffield", x:560, y:200, cost:1400 },
+  { id:"NOR", name:"Norwich", x:700, y:250, cost:1800 },
+];
+const CITY_BY_ID = Object.fromEntries(CITIES.map(c => [c.id, c]));
 
 /* ===== UK-ish simulated road network between city pairs ===== */
-
-
-
+const ROADS = {
+  "BIR-OXF": ["M40","A34"],
+  "BIR-LDN": ["M6","M1","M25"],
+  "BIR-BRI": ["M5"],
+  "BIR-LEI": ["M6","M69"],
+  "BIR-CAR": ["M5","M4"],
+  "BIR-LIV": ["M6"],
+  "BIR-MAN": ["M6"],
+  "BIR-SHE": ["M1"],
+  "BIR-NOR": ["A14","A11","A47"],
+  "OXF-LDN": ["M40","A40"],
+  "OXF-BRI": ["A420","M4"],
+  "OXF-LEI": ["M40","M69"],
+  "OXF-CAR": ["M4"],
+  "OXF-LIV": ["M40","M6"],
+  "OXF-MAN": ["M40","M6"],
+  "OXF-SHE": ["M40","M1"],
+  "OXF-NOR": ["A34","A14","A11"],
+  "BRI-LDN": ["M4","M25"],
+  "BRI-LEI": ["M5","M42","M6","M69"],
+  "BRI-CAR": ["M4"],
+  "BRI-LIV": ["M5","M6"],
+  "BRI-MAN": ["M5","M6"],
+  "BRI-SHE": ["M5","M42","M1"],
+  "BRI-NOR": ["M4","M25","A11"],
+  "LDN-LEI": ["M1"],
+  "LDN-CAR": ["M4"],
+  "LDN-LIV": ["M1","M6"],
+  "LDN-MAN": ["M1","M6"],
+  "LDN-SHE": ["M1"],
+  "LDN-NOR": ["A11","A47"],
+  "LEI-CAR": ["M69","M6","M50","M4"],
+  "LEI-LIV": ["M6"],
+  "LEI-MAN": ["M6"],
+  "LEI-SHE": ["M1"],
+  "LEI-NOR": ["A47"],
+  "CAR-LIV": ["M4","M5","M6"],
+  "CAR-MAN": ["M4","M5","M6"],
+  "CAR-SHE": ["M4","M5","M1"],
+  "CAR-NOR": ["M4","M25","A11"],
+  "LIV-MAN": ["M62"],
+  "LIV-SHE": ["M62","M1"],
+  "LIV-NOR": ["M62","A1","A47"],
+  "MAN-SHE": ["M1"],
+  "MAN-NOR": ["M62","A1","A47"],
+  "SHE-NOR": ["A1","A47"]
+};
+function pairKey(a,b){
+  const p = [a,b].sort().join("-");
+  return p;
+}
+function roadsFor(a,b){
+  return ROADS[pairKey(a,b)] || ["A-roads"];
+}
 
 /* ===== Utils ===== */
-
-
-
-
-
- const m=String(Math.floor(s/60)).padStart(2,"0"); const ss=String(s%60).padStart(2,"0"); return `${m}:${ss}`; };
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const dist = (ax,ay,bx,by)=>Math.hypot(ax-bx,ay-by);
+const fmtMoney = n => "£" + Math.round(n).toLocaleString("en-GB");
+const fmt1 = n => (Math.round(n*10)/10).toFixed(1);
+const formatMMSS = s => { s=Math.max(0,Math.floor(s)); const m=String(Math.floor(s/60)).padStart(2,"0"); const ss=String(s%60).padStart(2,"0"); return `${m}:${ss}`; };
 
 /* ===== State ===== */
 let S;
@@ -100,7 +159,12 @@ let map, ctx, cashEl, dayEl, vanCountEl, jobCountEl, speedStatEl, capStatEl, log
 const PBARS = Object.create(null);
 const ETAS = Object.create(null);
 
-
+const WEATHER = [
+  { name:"Light Rain", mult:0.9 },
+  { name:"Heavy Rain", mult:0.75 },
+  { name:"Snow", mult:0.6 },
+  { name:"Fog", mult:0.85 },
+];
 
 /* ===== Logging ===== */
 const CITY_NAMES = new Map(CITIES.map(c => [c.name, c.id]));
@@ -684,6 +748,14 @@ function maybeShowPrestige(){
   prestigeCard.classList.toggle("hidden", !open);
 }
 function bindUI(){
+
+  // Diagnostic: check critical DOM nodes exist
+  const _ids = ['saveBtn','resetBtn','garageBtn','toggleTickerBtn','refreshNowBtn','acceptBtn','prestigeBtn','importBtn'];
+  for (const id of _ids){
+    const el = document.getElementById(id);
+    if (!el){ console.error('[parcel-pilot] missing #' + id); try{ __diagBanner('Missing #' + id); }catch(_e){} }
+  }
+
   $("#saveBtn").addEventListener("click", () => { save(true); log("Game saved."); });
   $("#resetBtn").addEventListener("click", () => {
     if (confirm("Reset all progress? This cannot be undone.")){
@@ -853,6 +925,17 @@ function autoDispatch(){
 
 /* ===== Bootstrap ===== */
 function initAfterLoad(){
+
+  // Diagnostic: verify canvas and context
+  try{
+    const cnv = document.getElementById('map');
+    if (!cnv){ console.error('[parcel-pilot] missing #map canvas'); __diagBanner('Missing #map'); }
+    else {
+      const ctx = cnv.getContext('2d');
+      if (!ctx){ console.error('[parcel-pilot] 2D context failed'); __diagBanner('Canvas 2D failed'); }
+    }
+  }catch(e){ console.error(e); __diagBanner('Canvas init error: ' + (e && e.message)); }
+
   // Wire DOM
   map = $("#map"); ctx = map.getContext("2d");
   cashEl=$("#cash"); dayEl=$("#day"); vanCountEl=$("#vanCount"); jobCountEl=$("#jobCount");
