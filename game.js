@@ -1,6 +1,31 @@
 import { WORLD, ECON, BREAKS, SPEED, WEATHER } from './constants.js';
 import { CITIES, CITY_BY_ID, ROADS, pairKey, roadsFor } from './mapData.js';
 import { clamp, rnd, dist, fmtMoney, fmt1, formatMMSS } from './utils.js';
+// === ESM compatibility layer (auto-generated) ===
+if (typeof window !== 'undefined') {
+  // Expose inline-handler functions to window for existing HTML attributes
+  const _expose = (name) => {
+    try {
+      if (!(name in window) && typeof eval(name) === 'function') {
+        window[name] = eval(name);
+      }
+    } catch(e) { /* ignore */ }
+  };
+  const _names = [];
+  _names.forEach(_expose);
+
+  // Warn if opened via file:// (modules won't import when not served)
+  try {
+    if (location.protocol === 'file:') {
+      console.warn('This page is opened via file:// — ES module imports may fail. Use a local HTTP server.');
+      const warn = document.createElement('div');
+      warn.textContent = 'Open via a local server (ES modules) — e.g., `npx serve` or `python -m http.server`.';
+      warn.style.cssText = 'position:fixed;left:10px;bottom:10px;background:#222;color:#fff;padding:8px 10px;border-radius:6px;font:14px/1.2 system-ui;z-index:99999;';
+      document.addEventListener('DOMContentLoaded', ()=>document.body.appendChild(warn));
+    }
+  } catch(e) {}
+}
+
 
 (function(){
 'use strict';
