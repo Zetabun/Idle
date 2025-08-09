@@ -1,0 +1,54 @@
+:root{
+  --bg:#0f1220; --panel:#161a2e; --panel2:#1d2140; --text:#e8ecff; --muted:#aab2d5;
+  --accent:#7aa2ff; --good:#3bd37f; --bad:#ff4d5a; --warn:#ffd166;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;padding:0;background:var(--bg);color:var(--text);font:14px/1.35 system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+h1{font-size:20px;margin:8px 0 6px}
+h2{font-size:16px;margin:10px 0 6px;color:var(--muted)}
+small{color:var(--muted)}
+.wrap{display:flex;gap:10px;height:100%;padding:10px}
+.left{flex:1;display:flex;flex-direction:column;gap:10px;min-width:520px}
+.right{width:460px;display:flex;flex-direction:column;gap:10px}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid #2b2f55;border-radius:10px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,0.25)}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.stat{padding:6px 10px;background:#11152b;border:1px solid #2b2f55;border-radius:8px}
+.money{color:var(--good);font-weight:700}
+.btn{cursor:pointer;border:1px solid #2b2f55;border-radius:8px;background:#121531;color:var(--text);padding:6px 10px}
+.btn:hover{background:#19204a}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+canvas{display:block;background:#0a0e1e;border:1px solid #2b2f55;border-radius:10px}
+#map{height:500px}
+/* Lists */
+.list{display:grid;grid-template-columns:1fr auto;gap:8px}
+.list .item{grid-column:1/-1;padding:8px;background:#11152b;border:1px solid #2b2f55;border-radius:8px;cursor:pointer}
+.item.selected{outline:2px solid var(--accent)}
+.item .title{font-weight:700}
+.item .meta{color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.muted{color:var(--muted)}
+.hidden{display:none !important}
+.shop h3{margin:0 0 6px}
+.shop .row{align-items:center;justify-content:space-between;background:#11152b;border:1px solid #2b2f55;border-radius:8px;padding:8px}
+.log{height:140px;overflow:auto;background:#0b0e21;border:1px solid #2b2f55;border-radius:8px;padding:8px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+.footer{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.link{color:var(--accent);text-decoration:none}
+/* Progress bars */
+.pbar{height:8px;background:#0a0e1e;border:1px solid #2b2f55;border-radius:6px;overflow:hidden;margin-top:6px}
+.pfill{height:100%;width:0%;background:linear-gradient(90deg,var(--good),var(--accent));transition:width 0.1s linear}
+.eta{font-variant-numeric:tabular-nums}
+/* Log highlights */
+.log .city{color:var(--warn);font-weight:600}
+.log .crit{color:var(--bad);font-weight:700}
+/* Ticker marquee */
+#tickerWrap{position:absolute;left:10px;right:10px;bottom:10px}
+#ticker{position:relative;overflow:hidden;background:#0c1131;border:1px solid #2b2f55;border-radius:8px;height:28px;display:flex;align-items:center}
+#tickerInner{position:absolute;white-space:nowrap;will-change:transform}
+.titem{display:inline-flex;align-items:center;margin-right:32px}
+.titem .tag{padding:2px 6px;border-radius:6px;background:#1b2146;border:1px solid #2b2f55;color:#bcd;margin-right:8px}
+/* Garage */
+#garageCard table{width:100%;border-collapse:separate;border-spacing:0 6px}
+#garageCard td{padding:6px 8px;background:#11152b;border:1px solid #2b2f55}
+#garageCard td:first-child{border-radius:8px 0 0 8px}
+#garageCard td:last-child{border-radius:0 8px 8px 0;text-align:right}

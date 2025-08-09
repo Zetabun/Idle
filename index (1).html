@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Parcel Pilot — Delivery Idle Game (v1.6)</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="left">
+      <div class="card">
+        <div class="bar">
+          <div class="stat">Cash: <span id="cash" class="money">£0</span></div>
+          <div class="stat">Day <span id="day">1</span></div>
+          <div class="stat">Vans: <span id="vanCount">1</span></div>
+          <div class="stat">Jobs: <span id="jobCount">0</span></div>
+          <div class="stat">RP: <span id="rpStat">0.0</span></div>
+          <div class="stat">Bonus: <span id="corpBonus">+0%</span></div>
+          <button id="saveBtn" class="btn">Save</button>
+          <button id="resetBtn" class="btn">Reset</button>
+          <button id="garageBtn" class="btn">Garage</button>
+          <button id="toggleTickerBtn" class="btn">Ticker: On</button>
+          <span class="stat">Jobs in: <span id="jobsTimer">00:00</span></span>
+          <button id="refreshNowBtn" class="btn">Refresh Now (£50)</button>
+          <span class="muted">Tip: press <b>?</b> for help</span>
+        </div>
+      </div>
+      <div class="card" style="position:relative">
+        <canvas id="map" width="960" height="500" aria-label="Map"></canvas>
+        <div id="tickerWrap">
+          <div id="ticker">
+            <div id="tickerInner"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card cols">
+        <div>
+          <h2>Available Jobs</h2>
+          <div id="jobs" class="list"></div>
+          <div class="bar" style="margin-top:8px">
+            <button id="acceptBtn" class="btn" disabled>Assign & Dispatch</button>
+            <small class="muted">Select a <b>van</b> and a <b>job</b>.</small>
+          </div>
+        </div>
+        <div>
+          <h2>Vans</h2>
+          <div id="vans" class="list"></div>
+          <h2>Activity Log</h2>
+          <div id="log" class="log"></div>
+        </div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="card">
+        <h1>Parcel Pilot</h1>
+        <small class="muted">v1.6 — Scrolling ticker, real road names, detailed incidents, explicit van→job assignment.</small>
+        <div style="margin-top:8px" class="bar">
+          <span class="stat">Speed: <span id="speedStat">1.2</span> u/s</span>
+          <span class="stat">Capacity: <span id="capStat">5</span> crates</span>
+        </div>
+      </div>
+      <div id="tutorial" class="card">
+        <h2>Getting Started</h2>
+        <ol>
+          <li>Click a <b>van</b>, then click a <b>job</b>, then hit <b>Assign &amp; Dispatch</b>.</li>
+          <li>Routes face weather, roadworks, traffic, and specific incidents (delay-only or with costs).</li>
+          <li>After the first delivery, unlock research/buildings/upgrades.</li>
+        </ol>
+      </div>
+      <div id="unlocksCard" class="card hidden">
+        <h2>Unlock Cities</h2>
+        <div id="unlocks" class="shop"></div>
+      </div>
+      <div id="upgradesCard" class="card hidden">
+        <h2>Upgrades & Fleet</h2>
+        <div id="upgrades" class="shop"></div>
+      </div>
+      <div id="researchCard" class="card hidden">
+        <h2>Research & Tech</h2>
+        <div id="research" class="shop"></div>
+        <small class="muted">RP accrues over time from your Buildings.</small>
+      </div>
+      <div id="buildingsCard" class="card hidden">
+        <h2>Buildings</h2>
+        <div id="buildings" class="shop"></div>
+      </div>
+      <div id="garageCard" class="card hidden">
+        <h2>Garage</h2>
+        <div id="garage"></div>
+      </div>
+      <div id="prestigeCard" class="card hidden">
+        <h2>Prestige</h2>
+        <div class="row">
+          <div><h3>Incorporate</h3><small class="muted">Reset for +10% permanent payout bonus</small></div>
+          <button id="prestigeBtn" class="btn">Reset (+10%)</button>
+        </div>
+        <small class="muted">Unlocks after earning enough cash.</small>
+      </div>
+      <div class="card">
+        <h2>Achievements</h2>
+        <div id="achievements"></div>
+      </div>
+      <div class="card footer">
+        <small class="muted">Autosaves + offline sim</small>
+        <a class="link" href="#" id="exportBtn">Export Save</a>
+        <input type="file" id="importFile" class="hidden" accept=".json">
+        <button id="importBtn" class="btn">Import</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="game.js"></script>
+</body>
+</html>
