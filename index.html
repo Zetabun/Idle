@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mini 3D FPS — Gun Kill Tracker</title>
-  <link rel="icon" href="favicon.ico">
+  <title>Mini 3D FPS — Pump Shotgun + Kill Tracker</title>
+  <link rel="icon" href="data:image/x-icon;,">
   <style>
     html, body { margin:0; padding:0; height:100%; background:#000; overflow:hidden; }
     #startOverlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
       background:rgba(0,0,0,0.85); color:#fff; font: 18px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       text-align:center; z-index:10; }
-    #startBox { max-width:560px; padding:22px 26px; border:1px solid #333; border-radius:10px; background:#0b0b0b;
+    #startBox { max-width:620px; padding:22px 26px; border:1px solid #333; border-radius:10px; background:#0b0b0b;
       box-shadow:0 10px 30px rgba(0,0,0,0.45); }
     #startOverlay button { margin-top:14px; font-size:16px; padding:10px 16px; border-radius:8px; border:0;
       background:#1e90ff; color:#fff; cursor:pointer; }
@@ -24,7 +24,7 @@
     canvas { display:block; }
   </style>
 
-  <!-- Import map so 'three' and 'three/addons/*' resolve without a bundler -->
+  <!-- Import map for Three.js modules -->
   <script type="importmap">
   {
     "imports": {
@@ -37,9 +37,8 @@
 <body>
   <div id="startOverlay">
     <div id="startBox">
-      <h2 style="margin:0 0 8px 0;">Mini 3D FPS — Kill Counter Attachment</h2>
-      <p>Click <b>Start</b> to lock the mouse. Then use <b>WASD</b> to move, <b>Space</b> to jump, <b>Shift</b> to sprint, and <b>Left Click</b> to shoot.
-      Hit the red orbs to increase your kill count. The gun-mounted display updates live.</p>
+      <h2 style="margin:0 0 8px 0;">Mini 3D FPS — Pump Shotgun + Kill Counter</h2>
+      <p>Click <b>Start</b> to lock the mouse. Then use <b>WASD</b>, <b>Space</b>, <b>Shift</b>, and <b>Left Click</b>. Hit red targets to increase your kill count. The small display on the shotgun shows your kills.</p>
       <button id="startBtn">Start</button>
     </div>
   </div>
@@ -56,6 +55,7 @@
     import * as THREE from "three";
     import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 
+    // === basics ===
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x101015);
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
@@ -64,16 +64,18 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
+    // === lights ===
     const ambient = new THREE.AmbientLight(0xffffff, 0.35); scene.add(ambient);
-    const dir = new THREE.DirectionalLight(0xffffff, 0.85); dir.position.set(5, 10, 4); scene.add(dir);
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9); dir.position.set(6, 10, 5); scene.add(dir);
 
+    // === ground ===
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(200, 200),
       new THREE.MeshStandardMaterial({ color: 0x222228, metalness:0.1, roughness:0.9 })
     );
     ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
 
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x303040, metalness:0.1, roughness:0.8 });
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x323240, metalness:0.1, roughness:0.8 });
     for (let i=0;i<6;i++){
       const geo = new THREE.BoxGeometry(2 + Math.random()*3, 2 + Math.random()*3, 2 + Math.random()*3);
       const mesh = new THREE.Mesh(geo, wallMat);
@@ -81,14 +83,15 @@
       scene.add(mesh);
     }
 
+    // === controls ===
     const controls = new PointerLockControls(camera, document.body);
     camera.position.set(0, 1.7, 5);
     const startOverlay = document.getElementById('startOverlay');
-    const startBtn = document.getElementById('startBtn');
-    startBtn.addEventListener('click', () => controls.lock());
+    document.getElementById('startBtn').addEventListener('click', () => controls.lock());
     controls.addEventListener('lock', () => startOverlay.style.display = 'none');
     controls.addEventListener('unlock', () => startOverlay.style.display = 'flex');
 
+    // === movement ===
     const keys = {}; document.addEventListener('keydown', e => keys[e.code] = true); document.addEventListener('keyup', e => keys[e.code] = false);
     let velocityY = 0; const speed = 8; const sprint = 1.65; const gravity = 25; let canJump = true;
     function handleMovement(delta){
@@ -103,65 +106,163 @@
       if (camera.position.y < 1.7){ camera.position.y = 1.7; velocityY = 0; canJump = true; }
     }
 
-    const gun = new THREE.Group(); camera.add(gun); scene.add(camera); gun.position.set(0.45, -0.3, -0.9);
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.18, 0.6), new THREE.MeshStandardMaterial({ color: 0x111111, metalness:0.6, roughness:0.4 })); body.castShadow = true; gun.add(body);
-    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 16), new THREE.MeshStandardMaterial({ color: 0x222222, metalness:0.7, roughness:0.35 }));
-    barrel.rotation.x = Math.PI/2; barrel.position.set(0, -0.01, -0.45); gun.add(barrel);
+    // === gun: pump shotgun approximating the reference ===
+    const gun = new THREE.Group();
+    camera.add(gun);
+    scene.add(camera);
+    gun.position.set(0.46, -0.32, -0.95); // move to right, slightly down, forward
 
-    const trackerCanvas = document.createElement('canvas'); trackerCanvas.width = 256; trackerCanvas.height = 128; const tctx = trackerCanvas.getContext('2d');
+    // materials
+    const metalTan = new THREE.MeshStandardMaterial({ color: 0x6d6458, metalness:0.85, roughness:0.45 });
+    const blackPoly = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness:0.4, roughness:0.6 });
+    const darkMetal = new THREE.MeshStandardMaterial({ color: 0x303030, metalness:0.8, roughness:0.35 });
+
+    // receiver
+    const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.18, 0.55), metalTan);
+    receiver.position.set(0, -0.02, -0.1);
+    receiver.castShadow = true;
+    gun.add(receiver);
+
+    // barrel (top) - long
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.05, 18), darkMetal);
+    barrel.rotation.x = Math.PI/2;
+    barrel.position.set(0, 0.01, -0.68);
+    gun.add(barrel);
+
+    // tube magazine under barrel
+    const magTube = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.95, 18), darkMetal);
+    magTube.rotation.x = Math.PI/2;
+    magTube.position.set(0, -0.07, -0.63);
+    gun.add(magTube);
+
+    // pump / foregrip as rounded box + ribs
+    const pump = new THREE.Group();
+    const pumpCore = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.42), blackPoly);
+    pump.add(pumpCore);
+    // add ribs (thin rectangles)
+    for (let i=0;i<9;i++){
+      const rib = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.01, 0.035), new THREE.MeshStandardMaterial({ color: 0x0c0c0c, metalness:0.2, roughness:0.8 }));
+      rib.position.z = -0.18 + i*0.045;
+      rib.position.y = 0.03;
+      pump.add(rib);
+    }
+    pump.position.set(0, -0.06, -0.48);
+    gun.add(pump);
+
+    // top vent/rail
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.35), darkMetal);
+    rail.position.set(0, 0.07, -0.12);
+    gun.add(rail);
+
+    // rear sight block with small green dot
+    const rearSight = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, 0.05), darkMetal);
+    rearSight.position.set(0, 0.085, -0.02);
+    const rearDot = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.002, 12), new THREE.MeshBasicMaterial({ color: 0x99ff66 }));
+    rearDot.rotation.x = Math.PI/2; rearDot.position.set(0, 0.01, 0.01);
+    const rearGroup = new THREE.Group(); rearGroup.add(rearSight, rearDot); rearGroup.position.z = -0.16;
+    gun.add(rearGroup);
+
+    // front sight bead
+    const frontSightBase = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.015, 0.02), darkMetal);
+    const frontBead = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.004, 12), new THREE.MeshBasicMaterial({ color: 0xffff88 }));
+    frontBead.rotation.x = Math.PI/2; frontBead.position.set(0, 0.012, 0);
+    const frontGroup = new THREE.Group(); frontGroup.add(frontSightBase, frontBead);
+    frontGroup.position.set(0, 0.04, -1.18);
+    gun.add(frontGroup);
+
+    // small stock stub (not visible much)
+    const stock = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.18), blackPoly);
+    stock.position.set(0, -0.02, 0.16);
+    gun.add(stock);
+
+    // kill tracker display mounted on right side of receiver
+    const trackerCanvas = document.createElement('canvas');
+    trackerCanvas.width = 256; trackerCanvas.height = 128;
+    const tctx = trackerCanvas.getContext('2d');
     function drawTrackerText(val){
       tctx.fillStyle = '#0a0a0a'; tctx.fillRect(0,0,trackerCanvas.width, trackerCanvas.height);
       tctx.strokeStyle = '#333'; tctx.lineWidth = 6; tctx.strokeRect(3,3, trackerCanvas.width-6, trackerCanvas.height-6);
-      tctx.fillStyle = '#39ff14'; tctx.font = 'bold 70px monospace'; tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
-      const padded = String(val).padStart(4,'0'); tctx.fillText(padded, trackerCanvas.width/2, trackerCanvas.height/2 + 6);
+      tctx.fillStyle = '#39ff14'; tctx.font = 'bold 64px monospace'; tctx.textAlign = 'center'; tctx.textBaseline = 'middle';
+      const padded = String(val).padStart(4,'0'); tctx.fillText(padded, trackerCanvas.width/2, trackerCanvas.height/2 + 4);
     }
     let kills = 0; drawTrackerText(kills);
     const trackerTex = new THREE.CanvasTexture(trackerCanvas); trackerTex.anisotropy = 8;
-    const tracker = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.14), new THREE.MeshBasicMaterial({ map: trackerTex }));
-    tracker.position.set(0.14, 0.06, -0.18); tracker.rotation.y = Math.PI; gun.add(tracker);
+    const tracker = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.11), new THREE.MeshBasicMaterial({ map: trackerTex }));
+    tracker.position.set(0.12, 0.0, -0.07);
+    tracker.rotation.y = Math.PI * 0.95; // slight angle toward camera
+    gun.add(tracker);
 
-    const enemies = []; const enemyGeo = new THREE.SphereGeometry(0.45, 20, 20);
+    // simple pump slide + recoil animation
+    function pumpAction(){
+      pump.position.z += 0.06;
+      gun.position.z += 0.03; gun.position.y += 0.01;
+      setTimeout(()=>{
+        pump.position.z -= 0.06;
+        gun.position.z -= 0.03; gun.position.y -= 0.01;
+      }, 90);
+    }
+
+    // === enemies ===
+    const enemies = [];
+    const enemyGeo = new THREE.SphereGeometry(0.45, 20, 20);
+    const enemyMat = new THREE.MeshStandardMaterial({ color: 0xff3b3b, metalness:0.3, roughness:0.6, emissive:0x330000, emissiveIntensity:0.4 });
     function spawnEnemy(){
-      const mat = new THREE.MeshStandardMaterial({ color: 0xff3b3b, metalness:0.3, roughness:0.6, emissive:0x330000, emissiveIntensity:0.4 });
-      const m = new THREE.Mesh(enemyGeo, mat);
+      const m = new THREE.Mesh(enemyGeo, enemyMat.clone());
       const radius = 10 + Math.random()*25; const ang = Math.random()*Math.PI*2;
-      m.position.set(Math.cos(ang)*radius, 0.5, Math.sin(ang)*radius); m.userData = { speed: 1.2 + Math.random()*0.8, alive: true };
+      m.position.set(Math.cos(ang)*radius, 0.5, Math.sin(ang)*radius);
+      m.userData = { speed: 1.2 + Math.random()*0.8, alive: true };
       enemies.push(m); scene.add(m);
     }
     for (let i=0;i<10;i++) spawnEnemy();
-    function updateEnemies(delta){
+    function updateEnemies(delta, elapsed){
       for (const e of enemies){
         if (!e.userData.alive) continue;
         const toCam = new THREE.Vector3().subVectors(camera.position, e.position); toCam.y = 0;
         const dist = toCam.length() || 1; toCam.normalize();
         e.position.addScaledVector(toCam, e.userData.speed * delta);
+        // subtle idle bob
+        e.position.y = 0.5 + Math.sin(elapsed*2 + e.id || 0)*0.02;
         if (dist < 1) e.position.addScaledVector(toCam, -0.5);
       }
     }
 
-    const raycaster = new THREE.Raycaster(); const mouse = new THREE.Vector2(0,0); let lastShot = 0; const ROF = 120;
+    // === shooting ===
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2(0,0); // center
+    let lastShot = 0;
+    const ROF = 180; // ms
     const killsEl = document.getElementById('kills');
+
     function shoot(){
       const now = performance.now(); if (now - lastShot < ROF) return; lastShot = now;
-      barrel.scale.set(1, 0.8, 1); setTimeout(()=> barrel.scale.set(1,1,1), 30);
+      pumpAction();
+      // ray from center
       raycaster.setFromCamera(mouse, camera);
       const hits = raycaster.intersectObjects(enemies.filter(e=>e.userData.alive), false);
       if (hits.length){
-        const target = hits[0].object; target.userData.alive = false; target.material.emissiveIntensity = 1.5; target.scale.setScalar(1.6);
+        const target = hits[0].object; target.userData.alive = false;
+        target.material.emissiveIntensity = 1.5; target.scale.setScalar(1.6);
         setTimeout(()=>{ scene.remove(target); spawnEnemy(); }, 90);
         kills++; killsEl.textContent = kills; drawTrackerText(kills); trackerTex.needsUpdate = true;
       }
     }
     document.addEventListener('mousedown', (e) => { if (!controls.isLocked) return; if (e.button === 0) shoot(); });
 
+    // === resize ===
     window.addEventListener('resize', ()=>{ camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 
+    // === loop ===
     const fpsEl = document.getElementById('fps');
-    let last = performance.now(), fpsAccum = 0, fpsCount = 0, fpsLast = last;
+    let last = performance.now(), fpsAccum = 0, fpsCount = 0, fpsLast = last, start = last;
     function animate(){
       requestAnimationFrame(animate);
-      const now = performance.now(); const delta = Math.min(0.05, (now - last)/1000); last = now;
-      handleMovement(delta); updateEnemies(delta); renderer.render(scene, camera);
+      const now = performance.now();
+      const delta = Math.min(0.05, (now - last)/1000); last = now;
+      const elapsed = (now - start) / 1000;
+      handleMovement(delta);
+      updateEnemies(delta, elapsed);
+      renderer.render(scene, camera);
+      // fps
       fpsAccum += 1/delta; fpsCount++; if (now - fpsLast > 1000){ fpsEl.textContent = Math.round(fpsAccum/fpsCount); fpsAccum = 0; fpsCount = 0; fpsLast = now; }
     }
     animate();
