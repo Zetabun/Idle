@@ -7543,6 +7543,51 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     function buildVendingMachine(scene){
       const g = new THREE.Group();
       g.position.set(1.8, 0, -1.6);
+// === First Aid Cabinet (next to vending machine) ===
+(function(){
+  try {
+    const mtlLoader = new THREE.MTLLoader();
+    mtlLoader.setPath('./');
+    mtlLoader.setResourcePath('./');
+    mtlLoader.setTexturePath('./');
+    mtlLoader.load('first_aid_cabinet.mtl',
+      function(materials){
+        materials.preload();
+        const objLoader = new THREE.OBJLoader();
+        objLoader.setMaterials(materials);
+        objLoader.setPath('./');
+        objLoader.load('first_aid_cabinet.obj',
+          function(object){
+            const cabinet = new THREE.Group();
+            object.traverse(function(child){
+              if(child.isMesh){
+                child.castShadow = false;
+                child.receiveShadow = true;
+              }
+            });
+            // About half the vending machine's height
+            object.scale.set(0.12, 0.12, 0.12);
+            cabinet.add(object);
+
+            // Place slightly left of the vending machine and attach to wall
+            cabinet.position.set(1.2, 0.0, -1.6);
+            cabinet.rotation.y = Math.PI; // face into the room
+
+            room.add(cabinet);
+          },
+          undefined,
+          function(err){ console.error('[Cabinet] OBJ load error', err); }
+        );
+      },
+      undefined,
+      function(err){ console.error('[Cabinet] MTL load error', err); }
+    );
+  } catch(e) {
+    console.warn('Failed to load first aid cabinet model:', e);
+  }
+})();
+// === End First Aid Cabinet (next to vending machine) ===
+
       scene.add(g);
 
       // Cabinet
