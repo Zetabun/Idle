@@ -1097,11 +1097,7 @@
   .brand-logo-img{ height: 68px; }
   .brand-tagline{ font-size: 18px; }
 }
-</style>
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#111111">
-
-</head>
+</style></head>
 <body>
 <script>window.slotDelayLog = true;</script>
 <!-- DISCLAIMER: This is a purely fictional idle-game prototype.
@@ -7443,6 +7439,8 @@ function instantResolveBattle(you, foe, result){
 
 <!-- Basement 3D: lightweight first-person scene for Damp Basement HQ (Global build for local file:// use) -->
 <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.149.0/examples/js/loaders/MTLLoader.js"></script>
+<script src="https://unpkg.com/three@0.149.0/examples/js/loaders/OBJLoader.js"></script>
 <script>
 (function(){
   let __basement = null;
@@ -7493,18 +7491,378 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     // Make sure we size immediately (even if shown just now)
     ensureCanvasSize(renderer);
 
-    // Lights
+    // Lights (bright, soft)
     const hemi = new THREE.HemisphereLight(0xddeeff, 0x0a0a0a, 0.9);
     scene.add(hemi);
-    const amb  = new THREE.AmbientLight(0xffffff, 0.55);
+    const amb  = new THREE.AmbientLight(0xffffff, 0.35);
     scene.add(amb);
-    const spotA = new THREE.SpotLight(0xffffff, 2.8, 16, Math.PI/5, 0.35, 1.2);
+    const spotA = new THREE.SpotLight(0xffffff, 2.0, 14, Math.PI/5, 0.35, 1.2);
     spotA.position.set(-1.5, 2.4, 1.2);
     scene.add(spotA);
-    const spotB = new THREE.SpotLight(0xb0c8ff, 2.0, 16, Math.PI/5, 0.4, 1.0);
+    const spotB = new THREE.SpotLight(0xb0c8ff, 1.4, 14, Math.PI/5, 0.4, 1.0);
     spotB.position.set(2.2, 2.6, -1.2);
     scene.add(spotB);
-// Floor & walls (simple room ~6x6m)
+// Room
+    const room = new THREE.Group();
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x22272e, roughness: 0.9, metalness: 0.0 });
+    const wallMat  = new THREE.MeshStandardMaterial({ color: 0x1a1f27, roughness: 0.95, metalness: 0.0 });
+
+    const plane = (w,h,rx,ry,rz,px,py,pz,mat)=>{
+      const g = new THREE.PlaneGeometry(w,h);
+      const m = new THREE.Mesh(g, mat);
+      m.rotation.set(rx, ry, rz);
+      m.position.set(px, py, pz);
+      room.add(m);
+    };
+
+    // floor & ceiling
+    plane(6,6, -Math.PI/2, 0, 0, 0, 0, 0, floorMat);
+    const ceilMat = new THREE.MeshStandardMaterial({ color: 0x12161d, roughness: 0.95 });
+    plane(6,6,  Math.PI/2, 0, 0, 0, 3, 0, ceilMat);
+
+    // walls
+    plane(6,3, 0,  Math.PI, 0,   0, 1.5, -3, wallMat);
+    plane(6,3, 0, 0, 0,      0, 1.5,  3, wallMat);
+    plane(6,3, 0,  Math.PI/2, 0, -3, 1.5, 0, wallMat);
+    plane(6,3, 0, -Math.PI/2, 0,  3, 1.5, 0, wallMat);
+
+    // props
+    const boxMat = new THREE.MeshStandardMaterial({ color: 0x2b323c, roughness: 0.85 });
+    for(let i=0;i<5;i++){
+      const g = new THREE.BoxGeometry(0.6+Math.random()*0.4, 0.3+Math.random()*0.6, 0.6+Math.random()*0.4);
+      const m = new THREE.Mesh(g, boxMat);
+      m.position.set(-2.4 + Math.random()*4.8, 0.2, -2.2 + Math.random()*2.0);
+      m.castShadow = false; m.receiveShadow = true;
+      room.add(m);
+    }
+    scene.add(room);
+
+    
+
+    // --- Vending Machine -----------------------------------------------------
+    function buildVendingMachine(scene){
+      const g = new THREE.Group();
+      g.position.set(1.8, 0, -1.6);
+      scene.add(g);
+
+      // Cabinet
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1f2a37, roughness: 0.6, metalness: 0.2 });
+      const trimMat = new THREE.MeshStandardMaterial({ color: 0x0f1720, roughness: 0.4, metalness: 0.5 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.9, 0.8), bodyMat);
+      body.position.set(0, 0.95, 0);
+      g.add(body);
+
+      // Front frame (trim)
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(0.92, 1.92, 0.10), trimMat);
+      frame.position.set(0, 0.95, 0.36);
+      g.add(frame);
+
+      // Glass window
+      const glassMat = new THREE.MeshStandardMaterial({
+        color: 0x93c5fd,
+        transparent: true,
+        opacity: 0.25,
+        roughness: 0.05,
+        metalness: 0.0,
+        side: THREE.DoubleSide
+      });
+      const glass = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 1.46), glassMat);
+      glass.position.set(-0.07, 1.02, 0.41);
+      g.add(glass);
+
+      // Interior
+      const innerMat = new THREE.MeshStandardMaterial({ color: 0x0b0f14, roughness: 0.9 });
+      const inner = new THREE.Mesh(new THREE.BoxGeometry(0.70, 1.60, 0.55), innerMat);
+      inner.position.set(-0.08, 1.0, 0.10);
+      g.add(inner);
+
+      // Shelves + items
+      const shelfMat = new THREE.MeshStandardMaterial({ color: 0x2b3340, roughness: 0.7, metalness: 0.1 });
+      const canColors = [0xff6b6b, 0x9ae6b4, 0x93c5fd, 0xfacc15, 0xf472b6, 0x60a5fa];
+      for(let s=0; s<5; s++){
+        const y = 1.6 - s*0.32;
+        const shelf = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.02, 0.46), shelfMat);
+        shelf.position.set(-0.10, y, 0.10);
+        g.add(shelf);
+
+        // Row of "cans"
+        for(let i=0;i<6;i++){
+          const cx = -0.38 + i*0.13;
+          const cz = -0.10 + (i%2)*0.09;
+          const col = canColors[(s*3 + i) % canColors.length];
+          const canMat = new THREE.MeshStandardMaterial({ color: col, roughness: 0.4, metalness: 0.2, emissive: (i%5===0? col: 0x000000), emissiveIntensity: (i%5===0? 0.15: 0) });
+          const can = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.11, 18), canMat);
+          can.rotation.x = Math.PI/2;
+          can.position.set(cx, y+0.06, cz);
+          g.add(can);
+        }
+      }
+
+      // Keypad + coin slot panel with emissive display
+      // Create a small canvas for a lit display texture
+      const cvs = document.createElement('canvas'); cvs.width = 256; cvs.height = 128;
+      const ctx = cvs.getContext('2d');
+      ctx.fillStyle = '#0a0f14'; ctx.fillRect(0,0,cvs.width,cvs.height);
+      ctx.fillStyle = '#54ffa5'; ctx.shadowColor = '#54ffa5'; ctx.shadowBlur = 16;
+      ctx.font = 'bold 44px monospace'; ctx.fillText('FRESH', 18, 54);
+      ctx.font = 'bold 32px monospace'; ctx.fillText('DRINKS', 18, 104);
+      const dispTex = new THREE.CanvasTexture(cvs);
+      dispTex.anisotropy = 2;
+
+      const panel = new THREE.Group();
+      panel.position.set(0.30, 1.12, 0.41);
+      g.add(panel);
+
+      const displayMat = new THREE.MeshStandardMaterial({
+        color: 0x0b0f14, emissive: 0x0b0f14, emissiveMap: dispTex, emissiveIntensity: 1.1, roughness: 0.6, metalness: 0.0
+      });
+      const display = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.10), displayMat);
+      display.position.set(0, 0.22, 0.005);
+      panel.add(display);
+
+      const panelMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.5, metalness: 0.2 });
+      const housing = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.58, 0.05), panelMat);
+      housing.position.set(0, 0, 0);
+      panel.add(housing);
+
+      // Keypad buttons
+      const btnMat = new THREE.MeshStandardMaterial({ color: 0x374151, roughness: 0.4, metalness: 0.3, emissive: 0x111111, emissiveIntensity: 0.25 });
+      for(let r=0;r<4;r++){
+        for(let c=0;c<3;c++){
+          const b = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.02), btnMat);
+          b.position.set(-0.08 + c*0.08, 0.08 - r*0.08, 0.028);
+          panel.add(b);
+        }
+      }
+
+      // Coin slot & return
+      const slotMat = new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.3, metalness: 0.8 });
+      const slot = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.015, 0.02), slotMat);
+      slot.position.set(0.08, -0.02, 0.028);
+      panel.add(slot);
+      const returnCup = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.05, 0.05), slotMat);
+      returnCup.position.set(0.08, -0.12, 0.015);
+      panel.add(returnCup);
+
+      // Under-cabinet strip light (emissive)
+      const stripMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x9ab6ff, emissiveIntensity: 1.5 });
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.01, 0.02), stripMat);
+      strip.position.set(-0.08, 0.20, 0.41);
+      g.add(strip);
+
+      // Soft animation: tiny pulsing display
+      const start = performance.now();
+      const fnPulse = ()=>{
+        const t = (performance.now()-start)/1000;
+        display.material.emissiveIntensity = 0.95 + Math.sin(t*2.0)*0.15;
+        requestAnimationFrame(fnPulse);
+      };
+      requestAnimationFrame(fnPulse);
+    }
+    // -------------------------------------------------------------------------
+    
+    buildVendingMachine(scene);
+// First-person controls (non-inverted)
+    let yaw=0, pitch=0;
+    const vel = { x:0, z:0 };
+    const keys = { w:false, a:false, s:false, d:false };
+    const speed = 1.8;
+    const damping = 0.86;
+
+    function onResize(){
+      ensureCanvasSize(renderer);
+    }
+    window.addEventListener('resize', onResize);
+
+    // Extra: react to wrapper size changes (e.g., when becoming visible)
+    try{
+      if('ResizeObserver' in window){
+        __resizeObserver = new ResizeObserver(()=> ensureCanvasSize(renderer));
+        __resizeObserver.observe(wrap);
+      }
+    }catch(e){}
+
+    wrap.addEventListener('click', () => {
+      try{ canvas.requestPointerLock(); }catch(e){}
+    });
+
+    function onMouseMove(e){
+      if(document.pointerLockElement === canvas){
+        const sens = 0.0025;
+        yaw -= e.movementX * sens;
+        pitch -= e.movementY * sens;
+        const clamp = Math.PI/2 - 0.05;
+        if(pitch > clamp) pitch = clamp;
+        if(pitch < -clamp) pitch = -clamp;
+      }
+    }
+    document.addEventListener('mousemove', onMouseMove);
+
+    function onKey(e, down){
+      const k = e.key.toLowerCase();
+      if(k==='w') keys.w = down;
+      if(k==='a') keys.a = down;
+      if(k==='s') keys.s = down;
+      if(k==='d') keys.d = down;
+    }
+    document.addEventListener('keydown', e=>onKey(e,true));
+    document.addEventListener('keyup',   e=>onKey(e,false));
+
+    function tick(ts){
+      const dt = Math.min(0.033, (renderer.__lastTs ? (ts-renderer.__lastTs)/1000 : 0.016));
+      renderer.__lastTs = ts;
+
+      const fwdX = -Math.sin(yaw), fwdZ = -Math.cos(yaw);
+      const rightX = Math.cos(yaw), rightZ = Math.sin(yaw);
+if(keys.w) { vel.x += fwdX * speed * dt; vel.z += fwdZ * speed * dt; }
+      if(keys.s) { vel.x -= fwdX * speed * dt; vel.z -= fwdZ * speed * dt; }
+      if(keys.a) { vel.x -= rightX * speed * dt; vel.z -= rightZ * speed * dt; }
+      if(keys.d) { vel.x += rightX * speed * dt; vel.z += rightZ * speed * dt; }
+
+      vel.x *= damping; vel.z *= damping;
+
+      camera.position.x += vel.x;
+      camera.position.z += vel.z;
+      camera.position.x = Math.max(-2.7, Math.min(2.7, camera.position.x));
+      camera.position.z = Math.max(-2.7, Math.min(2.7, camera.position.z));
+
+      camera.rotation.x = pitch;
+      camera.rotation.y = yaw;
+
+      renderer.render(scene, camera);
+      renderer.__raf = requestAnimationFrame(tick);
+    }
+    renderer.__raf = requestAnimationFrame(tick);
+
+    function cleanup(){
+      try{ cancelAnimationFrame(renderer.__raf); }catch(e){}
+      window.removeEventListener('resize', onResize);
+      if(__resizeObserver){
+        try{ __resizeObserver.disconnect(); }catch(e){}
+        __resizeObserver = null;
+      }
+      document.removeEventListener('mousemove', onMouseMove);
+      try{ if(document.pointerLockElement===canvas) document.exitPointerLock(); }catch(e){}
+      try{
+        scene.traverse(obj => {
+          if(obj.geometry) obj.geometry.dispose?.();
+          if(obj.material){
+            if(Array.isArray(obj.material)){ obj.material.forEach(m=>m.dispose?.()); }
+            else obj.material.dispose?.();
+          }
+        });
+        renderer.dispose();
+      }catch(e){}
+      __basement = null;
+    }
+
+    __basement = { renderer, scene, camera, cleanup };
+
+    // Kick a frame in case we were created right after being shown
+    ensureCanvasSize(renderer);
+    try{ renderer.__lastTs = null; }catch(e){}
+    try{ renderer.render(scene, camera); }catch(e){}
+
+    return __basement;
+  }
+
+  function destroyBasement3D(){
+    if(__basement && __basement.cleanup){ __basement.cleanup(); }
+    __basement = null;
+  }
+
+  const __origRenderHQ = window.renderHeadquarters;
+  window.renderHeadquarters = function(){
+    try{ __origRenderHQ && __origRenderHQ.apply(this, arguments); }catch(e){}
+    try{
+      const container = document.getElementById('hqBasement3D');
+      if(!container) return;
+      let h = null;
+      try{ h = (typeof window.getHQRecord==='function') ? window.getHQRecord() : null; }catch(e){}
+      const shouldShow = !!(h && isDampBasement(h));
+      const wasHidden = container.classList.contains('hidden');
+      container.classList.toggle('hidden', !shouldShow);
+      container.setAttribute('aria-hidden', String(!shouldShow));
+      if(shouldShow){
+        if(!__basement){
+          // Defer a tick to allow layout after becoming visible
+          setTimeout(()=>{
+            const b = mountBasement3D();
+            if(b && b.renderer){
+              // Ensure sizing now that we're visible
+              ensureCanvasSize(b.renderer);
+              try{ b.renderer.__lastTs = null; }catch(e){}
+            }
+          }, 0);
+        }else{
+          // Already mounted: ensure sizing & kick a render
+          ensureCanvasSize(__basement.renderer);
+          try{ __basement.renderer.__lastTs = null; }catch(e){}
+        }
+      }else{
+        destroyBasement3D();
+      }
+    }catch(e){}
+  };
+
+  const __origSetActiveTab2 = window.setActiveTab;
+  window.setActiveTab = function(id){
+    try{
+      if(id !== 'headquarters'){ destroyBasement3D(); }
+    }catch(e){}
+    try{ __origSetActiveTab2 && __origSetActiveTab2.apply(this, arguments); }catch(e){}
+  };
+
+})();
+</script>
+<script>
+(function(){
+  // Guard in case the element ids aren't present yet
+  let __basement = null;
+
+  function isDampBasement(h){
+    try{
+      const nm = String(h && h.name || '').toLowerCase().trim();
+      return nm === 'damp basement';
+    }catch(e){ return false; }
+  }
+
+  function ensureCanvasSize(renderer){
+    try{
+      const wrap = document.getElementById('basement3DWrap');
+      if(!wrap) return;
+      const canvas = renderer.domElement;
+      const w = wrap.clientWidth || 600;
+      const h = wrap.clientHeight || 260;
+      if(canvas.width !== w || canvas.height !== h){
+        renderer.setSize(w, h, false);
+      }
+    }catch(e){}
+  }
+
+  function mountBasement3D(){
+    if(__basement) return __basement;
+    const wrap = document.getElementById('basement3DWrap');
+    const canvas = document.getElementById('basement3DCanvas');
+    if(!wrap || !canvas || !window.THREE) return null;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0b0f14);
+    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 100);
+    camera.position.set(0, 1.6, 4);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
+    ensureCanvasSize(renderer);
+
+    // Lights
+    const amb = new THREE.AmbientLight(0x404040, 0.8);
+    scene.add(amb);
+    const spot = new THREE.SpotLight(0x9ec1ff, 2.2, 12, Math.PI/6, 0.4, 1.0);
+    spot.position.set(-1.5, 2.2, 1.0);
+    scene.add(spot);
+
+    // Floor & walls (simple room ~6x6m)
     const room = new THREE.Group();
     const floorMat = new THREE.MeshStandardMaterial({ color: 0x22272e, roughness: 0.9, metalness: 0.0 });
     const wallMat  = new THREE.MeshStandardMaterial({ color: 0x1a1f27, roughness: 0.95, metalness: 0.0 });
@@ -7527,7 +7885,62 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     plane(6,3, 0,  Math.PI/2, 0, -3, 1.5, 0, wallMat);   // left
     plane(6,3, 0, -Math.PI/2, 0,  3, 1.5, 0, wallMat);   // right
 
-    // Props: boxes / pipes
+    
+    
+    // === First Aid Cabinet (OBJ/MTL) attached to back wall ===
+    (function(){
+      try {
+        // Add a bright placeholder so we can confirm position even if model fails to load
+        const markerMat = new THREE.MeshStandardMaterial({ color: 0xff3366, emissive: 0x331122, roughness: 0.6, metalness: 0.0 });
+        const marker = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.9, 0.05), markerMat);
+        marker.position.set(-1.2, 1.05, -2.98); // slightly in front of back wall
+        room.add(marker);
+
+        const mtlLoader = new THREE.MTLLoader();
+        mtlLoader.setPath('./');
+        mtlLoader.setResourcePath('./');
+        mtlLoader.setTexturePath('./');
+        mtlLoader.load('first_aid_cabinet.mtl',
+          function(materials){
+            console.log('[Cabinet] MTL loaded');
+            materials.preload();
+            const objLoader = new THREE.OBJLoader();
+            objLoader.setMaterials(materials);
+            objLoader.setPath('./');
+            objLoader.load('first_aid_cabinet.obj',
+              function(object){
+                console.log('[Cabinet] OBJ loaded');
+                const cabinet = new THREE.Group();
+                object.traverse(function(child){
+                  if(child.isMesh){
+                    child.castShadow = false;
+                    child.receiveShadow = true;
+                    if(child.material && child.material.map){ child.material.needsUpdate = true; }
+                  }
+                });
+                // Try a larger default scale; adjust as needed
+                object.scale.set(0.25, 0.25, 0.25);
+                object.position.set(0,0,0);
+                cabinet.add(object);
+
+                // Place on the back wall (z ~ -3), facing inward
+                cabinet.position.set(-1.2, 1.05, -2.98);
+                cabinet.rotation.y = Math.PI;
+
+                room.add(cabinet);
+              },
+              function(xhr){ console.log('[Cabinet] loading...', (xhr.loaded/xhr.total*100||0).toFixed(1)+'%'); },
+              function(err){ console.error('[Cabinet] OBJ load error', err); }
+            );
+          },
+          function(xhr){ console.log('[Cabinet] MTL loading...', (xhr.loaded/xhr.total*100||0).toFixed(1)+'%'); },
+          function(err){ console.error('[Cabinet] MTL load error', err); }
+        );
+      } catch(e) {
+        console.warn('Failed to load first aid cabinet model:', e);
+      }
+    })();
+    // === End First Aid Cabinet ===// Props: boxes / pipes
     const boxMat = new THREE.MeshStandardMaterial({ color: 0x2b323c, roughness: 0.85 });
     for(let i=0;i<5;i++){
       const g = new THREE.BoxGeometry(0.6+Math.random()*0.4, 0.3+Math.random()*0.6, 0.6+Math.random()*0.4);
@@ -7537,86 +7950,6 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
       room.add(m);
     }
     scene.add(room);
-
-
-// --- First Aid Cabinet (procedural) -------------------------------------
-(function buildProceduralFirstAid(scene){
-  const g = new THREE.Group();
-  // Dimensions (meters)
-  const W = 0.48, H = 0.62, D = 0.18;
-  // Position on back wall (z ~ -3), at eye height
-  g.position.set(-0.85, 1.45, -2.98);
-  // Make sure it faces into the room
-  g.rotation.y = Math.PI;
-
-  // Materials
-  const cabMat  = new THREE.MeshStandardMaterial({ color: 0xe6e8ea, roughness: 0.7, metalness: 0.05 });
-  const rimMat  = new THREE.MeshStandardMaterial({ color: 0xbfc5cc, roughness: 0.5, metalness: 0.3 });
-  const glassMat= new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.0, transmission: 0.8, transparent: true, thickness: 0.01 });
-  const redMat  = new THREE.MeshStandardMaterial({ color: 0xc81e1e, roughness: 0.6, metalness: 0.0 });
-
-  // Main box (shallow depth)
-  const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), cabMat);
-  body.castShadow = false; body.receiveShadow = true;
-  g.add(body);
-
-  // Slightly inset door panel
-  const door = new THREE.Mesh(new THREE.BoxGeometry(W*0.96, H*0.96, D*0.02), rimMat);
-  door.position.set(0, 0, D*0.51);
-  g.add(door);
-
-  // Glass window on door
-  const glass = new THREE.Mesh(new THREE.PlaneGeometry(W*0.6, H*0.48), glassMat);
-  glass.position.set(0, 0, D*0.52 + 0.001);
-  g.add(glass);
-
-  // Red cross emblem (two thin boxes)
-  const crossH = new THREE.Mesh(new THREE.BoxGeometry(W*0.4, H*0.08, D*0.005), redMat);
-  crossH.position.set(0, 0, D*0.525);
-  const crossV = new THREE.Mesh(new THREE.BoxGeometry(W*0.08, H*0.4, D*0.005), redMat);
-  crossV.position.set(0, 0, D*0.525);
-  g.add(crossH, crossV);
-
-  // Small handle
-  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.06, 16), rimMat);
-  handle.rotation.z = Math.PI/2;
-  handle.position.set(W*0.43, 0, D*0.52);
-  g.add(handle);
-
-  // Mount flush to wall: nudge forward a bit to avoid z-fighting
-  g.position.z += 0.005;
-
-  // Expose for later tweaks
-  scene.__firstAidCabinet = g;
-  scene.add(g);
-})(scene);
-
-
-
-
-// --- Ceiling Lights ------------------------------------------------------
-(function addCeilingLights(scene){
-  const positions = [ -1.8, 0, 1.8 ];
-  positions.forEach((x) => {
-    const light = new THREE.PointLight(0xffffff, 1.2, 8, 2.0);
-    light.position.set(x, 2.4, 0);
-    light.castShadow = true;
-    scene.add(light);
-
-    const stripMat = new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      emissive: 0xffffff,
-      emissiveIntensity: 2.2,
-      roughness: 0.3,
-      metalness: 0.0
-    });
-    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.04, 0.08), stripMat);
-    strip.position.set(x, 2.45, 0);
-    scene.add(strip);
-  });
-})(scene);
-
-
 
     // Basic first-person controls (pointer lock + WASD)
     let yaw=0, pitch=0;
@@ -7760,26 +8093,6 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 
 })();</script>
 
-
-<script>
-  // Register Service Worker for offline + updates
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', async () => {
-      try {
-        const reg = await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
-        // Listen for new SW waiting to activate
-        navigator.serviceWorker.addEventListener('message', (event) => {
-          if (event.data && event.data.type === 'SW_UPDATE_AVAILABLE') {
-            // Use a small helper to prompt user to refresh
-            import('/sw-update.js').then(mod => mod.default(reg));
-          }
-        });
-      } catch (err) {
-        console.error('SW registration failed:', err);
-      }
-    });
-  }
-</script>
 </body>
 </html>
 
